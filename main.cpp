@@ -9,7 +9,6 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
-
 #pragma comment(lib,"d3d9.lib")
 #pragma comment(lib,"d3dx9.lib")
 #pragma comment(lib,"dwmapi.lib")
@@ -51,6 +50,7 @@ D3DXVECTOR3 g_LocalPos;
 LRESULT WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void Render();
 void RenderGame();
+void SideMenu();
 void InitDirectX();
 void ShutdownDirectX();
 void HotKeyz();
@@ -227,11 +227,21 @@ void Render()
 	}
 
 	RenderGame();
+	SideMenu();
 
 	g_pDirect3DDevice->EndScene();
 	g_pDirect3DDevice->PresentEx(NULL, NULL, NULL, NULL, NULL);
 
 }
+
+void SideMenu()
+{
+	{DrawTextBorder(10, 50, D3DCOLOR_ARGB(255, 178, 34, 34), "Vehicles are: %s",(SeeVehicles)?"on":"off"); }
+	{DrawTextBorder(10, 60, D3DCOLOR_ARGB(255, 178, 34, 34), "Players are: %s",(SeePlayers)?"on":"off"); }
+	{DrawTextBorder(10, 70, D3DCOLOR_ARGB(255, 178, 34, 34), "Dead bodies are: %s",(SeeBodies)?"on":"off"); }
+	{DrawTextBorder(10, 80, D3DCOLOR_ARGB(255, 178, 34, 34), "Tents are: %s",(SeeTents)?"on":"off"); }
+}
+
 
 void RenderGame()
 {
@@ -355,8 +365,16 @@ void RenderGame()
 						//alive players
 						if(Read<BYTE>(dwEntity + 0x20C) != 1 && SeePlayers)
 						{
-							DrawTextBorder(pos.x, pos.y, D3DCOLOR_ARGB(255, 0, 200, 0), "%s[%0.fm]\n%s", szObjectName, dist, szWeaponName);
-							DrawBox(pos.x, pos.y, 10, 10, D3DCOLOR_ARGB(255, 255, 255, 255));
+
+							if (dist < 50.0f)
+							{DrawBox(pos.x-20, pos.y-60, 20, 60, D3DCOLOR_ARGB(255, 255, 0, 0));
+							DrawTextBorder(pos.x, pos.y, D3DCOLOR_ARGB(255, 255, 0, 0), "%s[%0.fm]\n%s", szObjectName, dist, szWeaponName);}
+							else if(dist < 300.0f)
+							{DrawBox(pos.x, pos.y, 20, 20, D3DCOLOR_ARGB(255, 255, 99, 71));
+							DrawTextBorder(pos.x, pos.y, D3DCOLOR_ARGB(255, 255, 99, 71), "%s[%0.fm]\n%s", szObjectName, dist, szWeaponName);}
+							else 
+							{DrawBox(pos.x, pos.y, 10, 10, D3DCOLOR_ARGB(255, 255, 160, 122));
+							DrawTextBorder(pos.x, pos.y, D3DCOLOR_ARGB(255, 255, 160, 122), "%s[%0.fm]\n%s", szObjectName, dist, szWeaponName);}
 						}
 						//bodies
 						if(Read<BYTE>(dwEntity + 0x20C) == 1 && SeeBodies)
@@ -402,7 +420,6 @@ void RenderGame()
 						ReadProcessMemory(g_ArmaHANDLE, (LPCVOID)(Tri + 0x8), &pavad, 25, 0);
 						if (SeeTents && (!strcmp(pavad, "TentStorage")))
 						{
-
 							D3DXVECTOR3 pos = Read<D3DXVECTOR3>(Read<DWORD>(One + 0x18) + 0x28);
 							float dx = (g_LocalPos.x - pos.x);
 							float dy = (g_LocalPos.y - pos.y);
