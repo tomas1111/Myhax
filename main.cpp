@@ -65,6 +65,7 @@ bool SeePlayers = true;
 bool SeeVehicles = true;
 bool SeeBodies = true;
 bool SeeTents = true;
+bool nofatigue = false;
 
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
@@ -241,6 +242,7 @@ void SideMenu()
 	{DrawTextBorder(10, 60, D3DCOLOR_ARGB(255, 178, 34, 34), "Players are: %s",(SeePlayers)?"on":"off"); }
 	{DrawTextBorder(10, 70, D3DCOLOR_ARGB(255, 178, 34, 34), "Dead bodies are: %s",(SeeBodies)?"on":"off"); }
 	{DrawTextBorder(10, 80, D3DCOLOR_ARGB(255, 178, 34, 34), "Tents are: %s",(SeeTents)?"on":"off"); }
+	{DrawTextBorder(10, 90, D3DCOLOR_ARGB(255, 178, 34, 34), "No fatigue: %s",(nofatigue)?"on":"off"); }
 }
 
 
@@ -309,7 +311,11 @@ void RenderGame()
 		WriteProcessMemory(g_ArmaHANDLE,  (LPVOID*)grasspt, &value, sizeof(value), NULL);
 		Sleep(150);
 		}
-		
+		else if (GetAsyncKeyState(VK_LSHIFT) && GetAsyncKeyState(VK_END))
+		{
+		nofatigue = !nofatigue;
+		Sleep(150);
+		}
 		// LocalPlayer
 		{
 			if(dwLocalPlayer)
@@ -451,7 +457,17 @@ void RenderGame()
 				}
 			}
 		}
-	}
+		//writing functions
+		if (nofatigue)
+		{
+		DWORD one = Read<DWORD>(ARMA_CLIENT);
+		DWORD two = Read<DWORD>(one + 0x13A8);
+		DWORD three = Read<DWORD>(two + 0x4);
+		int fatpt = three + 0xC44;
+		long value = 0;
+		WriteProcessMemory(g_ArmaHANDLE,  (LPVOID*)fatpt, &value, sizeof(fatpt), NULL);
+		}
+}
 }
 void InitDirectX()
 {
