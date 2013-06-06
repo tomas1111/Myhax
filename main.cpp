@@ -66,6 +66,7 @@ bool SeeVehicles = true;
 bool SeeBodies = true;
 bool SeeTents = true;
 bool nofatigue = false;
+bool infAmmo = false;
 
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
@@ -316,6 +317,16 @@ void RenderGame()
 		nofatigue = !nofatigue;
 		Sleep(150);
 		}
+		else if (GetAsyncKeyState(VK_LSHIFT) && GetAsyncKeyState(VK_DIVIDE))
+		{
+		infAmmo = true;
+		Sleep(150);
+		}
+		else if (GetAsyncKeyState(VK_LSHIFT) && GetAsyncKeyState(VK_DECIMAL))
+		{
+		infAmmo = false;
+		Sleep(150);
+		}
 		// LocalPlayer
 		{
 			if(dwLocalPlayer)
@@ -467,6 +478,45 @@ void RenderGame()
 		long value = 0;
 		WriteProcessMemory(g_ArmaHANDLE,  (LPVOID*)fatpt, &value, sizeof(fatpt), NULL);
 		}
+		if (infAmmo)
+		{
+			// pls fix this shet
+		DWORD objTable = Read<DWORD>(ARMA_CLIENT);
+		DWORD objTablePtr = Read<DWORD>(objTable + 0x13A8);
+		DWORD objTablePtr1 = Read<DWORD>(objTablePtr + 0x4);
+                DWORD objTablePtr2;
+		DWORD weaponID = Read<DWORD>(objTablePtr1 + 0x6E0);
+		objTablePtr1 = Read<DWORD>(objTablePtr1 + 0x694);
+		objTablePtr2 = Read<DWORD>(objTablePtr1 + (weaponID * 0x24 + 0x4));
+
+		DWORD maxCntPtr = Read<DWORD>(objTablePtr2 + 8);
+		DWORD currentMuzzleVelocity = Read<DWORD>(maxCntPtr + 0x34);
+		DWORD maxCnt = Read<DWORD>(maxCntPtr + 0x2C);
+		int timeOut;
+		if (maxCnt > 2)
+            {
+                timeOut = objTablePtr2 + 0x14;
+				// fastfire, removed -- llte
+                int value = (int)(maxCnt * .75);
+                DWORD ammo1 = objTablePtr2 + 0xc;
+
+                DWORD ammo2 = objTablePtr2 + 0x24;
+                DWORD tempint;
+                int int1 = (DWORD)(value ^ 0xBABAC8B6);
+                tempint = int1;
+                int1 = int1 << 1;
+                DWORD int2 = tempint - (int1);
+				WriteProcessMemory(g_ArmaHANDLE,  (LPVOID*)ammo1, &value, sizeof(int), NULL);
+				WriteProcessMemory(g_ArmaHANDLE,  (LPVOID*)ammo2, &value, sizeof(int), NULL);
+              //  Mem.WriteMem(ammo1, sizeof(int), (int)int1);
+              //  Mem.WriteMem(ammo2, sizeof(int), (int)int2);
+                //Debug.WriteLine(maxCntPtr.ToString("X"));
+                //Debug.WriteLine(ammo2.ToString("X"));
+            }
+		long value = 0;
+		//WriteProcessMemory(g_ArmaHANDLE,  (LPVOID*)fatpt, &value, sizeof(fatpt), NULL);
+		}
+}
 }
 }
 void InitDirectX()
