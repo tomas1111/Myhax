@@ -65,7 +65,6 @@ bool SeePlayers = true;
 bool SeeVehicles = true;
 bool SeeBodies = true;
 bool SeeTents = true;
-int viewdist = 00000;
 
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
@@ -288,19 +287,29 @@ void RenderGame()
 			SeeTents = !SeeTents;
 			Sleep(150);
 		}
-		else if (GetAsyncKeyState(VK_SPACE))
+		else if (GetAsyncKeyState(VK_LSHIFT) && GetAsyncKeyState(VK_PRIOR))
 		{
-		/*DWORD grassv = Read<DWORD>(0x0E25718);
-		std::ofstream f;
-		f.open("test.txt",std::ios::out ) ;
-		f << "value is ->  " << grassv << std::endl;
-		f.close() ;*/
-		//int vOut = 1140457474;
-		double vIn = 500.0f;
-	    long vOut = (long)1162235674;
-		WriteProcessMemory(g_ArmaHANDLE,  (LPVOID*)0x0E25718, &vOut, sizeof(vOut), NULL);
+		DWORD viewdist = Read<DWORD>(0x0E25718);
+		long viewdist1 = viewdist+3846004;
+		WriteProcessMemory(g_ArmaHANDLE,  (LPVOID*)0x0E25718, &viewdist1, sizeof(viewdist1), NULL);
+		Sleep(150);
 		}
-
+		else if (GetAsyncKeyState(VK_LSHIFT) && GetAsyncKeyState(VK_NEXT) )
+		{
+		DWORD viewdist = Read<DWORD>(0x0E25718);
+		long viewdist1 = viewdist-3846004;
+		WriteProcessMemory(g_ArmaHANDLE,  (LPVOID*)0x0E25718, &viewdist1, sizeof(viewdist1), NULL);
+		Sleep(150);
+		}
+		else if (GetAsyncKeyState(VK_LSHIFT) && GetAsyncKeyState(VK_HOME))
+		{
+		DWORD grass = Read<DWORD>(ARMA_CLIENT);
+		int grasspt = grass + 0x14F0;
+		long value = 1112014848;
+		WriteProcessMemory(g_ArmaHANDLE,  (LPVOID*)grasspt, &value, sizeof(value), NULL);
+		Sleep(150);
+		}
+		
 		// LocalPlayer
 		{
 			if(dwLocalPlayer)
@@ -374,7 +383,7 @@ void RenderGame()
 							if (dist < 50.0f)
 							{DrawBox(pos.x-20, pos.y-60, 20, 60, D3DCOLOR_ARGB(255, 255, 0, 0));
 							DrawTextBorder(pos.x, pos.y, D3DCOLOR_ARGB(255, 255, 0, 0), "%s[%0.fm]\n%s", szObjectName, dist, szWeaponName);}
-							else if(dist < 300.0f)
+							else if(dist < 400.0f)
 							{DrawBox(pos.x, pos.y, 20, 20, D3DCOLOR_ARGB(255, 255, 99, 71));
 							DrawTextBorder(pos.x, pos.y, D3DCOLOR_ARGB(255, 255, 99, 71), "%s[%0.fm]\n%s", szObjectName, dist, szWeaponName);}
 							else 
