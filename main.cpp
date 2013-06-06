@@ -9,12 +9,13 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+
 #pragma comment(lib,"d3d9.lib")
 #pragma comment(lib,"d3dx9.lib")
 #pragma comment(lib,"dwmapi.lib")
-
 #pragma warning(disable: 4018)
 #pragma warning(disable: 4244)
+
 
 #define Entity_Table  0xDFBD98
 #define ARMA_CLIENT 0xDFCDD8
@@ -64,6 +65,7 @@ bool SeePlayers = true;
 bool SeeVehicles = true;
 bool SeeBodies = true;
 bool SeeTents = true;
+int viewdist = 00000;
 
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
@@ -111,7 +113,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			GetWindowThreadProcessId(g_ArmaHWND, &g_ArmaPID);
 			if(g_ArmaPID != 0)
 			{
-				g_ArmaHANDLE = OpenProcess(PROCESS_VM_READ, false, g_ArmaPID);
+				g_ArmaHANDLE = OpenProcess(PROCESS_ALL_ACCESS|PROCESS_VM_OPERATION|PROCESS_VM_READ|PROCESS_VM_WRITE|PROCESS_QUERY_INFORMATION, false, g_ArmaPID);
 				if(g_ArmaHANDLE == NULL)
 				{
 					g_ArmaHWND = NULL;
@@ -156,7 +158,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	while(true)
 	{
 		if(!g_ArmaHANDLE)
-			g_ArmaHANDLE = OpenProcess(PROCESS_VM_READ, false, g_ArmaPID);
+			g_ArmaHANDLE = OpenProcess(PROCESS_ALL_ACCESS|PROCESS_VM_OPERATION|PROCESS_VM_READ|PROCESS_VM_WRITE|PROCESS_QUERY_INFORMATION, false, g_ArmaPID);
 
 		if(!g_ArmaHANDLE)
 			ExitProcess(0);
@@ -245,7 +247,7 @@ void SideMenu()
 
 void RenderGame()
 {
-	g_ArmaHANDLE = OpenProcess(PROCESS_VM_READ, false, g_ArmaPID);
+	g_ArmaHANDLE = OpenProcess(PROCESS_ALL_ACCESS|PROCESS_VM_OPERATION|PROCESS_VM_READ|PROCESS_VM_WRITE|PROCESS_QUERY_INFORMATION, false, g_ArmaPID);
 	if(g_ArmaHANDLE)
 	{
 		DWORD dwTransformations = Read<DWORD>(ARMA_TRANSFORMATION);
@@ -288,20 +290,23 @@ void RenderGame()
 		}
 		else if (GetAsyncKeyState(VK_SPACE))
 		{
-			//not working
-			float vIn = 50.0f;
-			long vOut = (long)0;
-			DWORD grass = Read<DWORD>(Entity_Table + 5360);
-			WriteProcessMemory(g_ArmaHANDLE, (void*)(0xE25718), &vOut, 4, 0);
-			Sleep(150);
+		/*DWORD grassv = Read<DWORD>(0x0E25718);
+		std::ofstream f;
+		f.open("test.txt",std::ios::out ) ;
+		f << "value is ->  " << grassv << std::endl;
+		f.close() ;*/
+		//int vOut = 1140457474;
+		double vIn = 500.0f;
+	    long vOut = (long)1162235674;
+		WriteProcessMemory(g_ArmaHANDLE,  (LPVOID*)0x0E25718, &vOut, sizeof(vOut), NULL);
 		}
+
 		// LocalPlayer
 		{
 			if(dwLocalPlayer)
 			{
 				g_LocalPos = Read<D3DXVECTOR3>(Read<DWORD>(dwLocalPlayer + 0x18) + 0x28);
 				DrawTextBorder(10, 22, D3DCOLOR_ARGB(255, 255, 0, 0), "Position: %0.1f/%0.1f", g_LocalPos.x/100, g_LocalPos.z/100);
-
 			}
 		}
 
