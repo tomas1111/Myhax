@@ -66,8 +66,10 @@ bool SeeVehicles = true;
 bool SeeBodies = true;
 bool SeeTents = true;
 bool nofatigue = false;
-bool infAmmo = false;
-
+bool infiAmmo = false;
+bool repairV = false;
+bool fullfuel = false;
+bool datfire = false;
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -244,6 +246,10 @@ void SideMenu()
 	{DrawTextBorder(10, 70, D3DCOLOR_ARGB(255, 178, 34, 34), "Dead bodies are: %s",(SeeBodies)?"on":"off"); }
 	{DrawTextBorder(10, 80, D3DCOLOR_ARGB(255, 178, 34, 34), "Tents are: %s",(SeeTents)?"on":"off"); }
 	{DrawTextBorder(10, 90, D3DCOLOR_ARGB(255, 178, 34, 34), "No fatigue: %s",(nofatigue)?"on":"off"); }
+	{DrawTextBorder(g_fResolution[0] - 100 , 5, D3DCOLOR_ARGB(255, 255, 185, 15), "Unlimited ammo: %s",(infiAmmo)?"on":"off"); }
+	{DrawTextBorder(10, 100, D3DCOLOR_ARGB(255, 255, 69, 0), "Repair is: %s",(repairV)?"active!":"off"); }
+	{DrawTextBorder(10, 110, D3DCOLOR_ARGB(255, 255, 69, 0), "Refuel is: %s",(fullfuel)?"active!":"off"); }
+	if(datfire){{DrawTextBorder(g_fResolution[0] - 100 , 50, D3DCOLOR_ARGB(255, 255, 0, 0), "Maximum firerate"); }}
 }
 
 
@@ -292,40 +298,55 @@ void RenderGame()
 		}
 		else if (GetAsyncKeyState(VK_LSHIFT) && GetAsyncKeyState(VK_PRIOR))
 		{
-		DWORD viewdist = Read<DWORD>(0x0E25718);
-		long viewdist1 = viewdist+3846004;
-		WriteProcessMemory(g_ArmaHANDLE,  (LPVOID*)0x0E25718, &viewdist1, sizeof(viewdist1), NULL);
-		Sleep(150);
+			DWORD viewdist = Read<DWORD>(0x0E25718);
+			long viewdist1 = viewdist+3846004;
+			WriteProcessMemory(g_ArmaHANDLE,  (LPVOID*)0x0E25718, &viewdist1, sizeof(viewdist1), NULL);
+			Sleep(150);
 		}
 		else if (GetAsyncKeyState(VK_LSHIFT) && GetAsyncKeyState(VK_NEXT) )
 		{
-		DWORD viewdist = Read<DWORD>(0x0E25718);
-		long viewdist1 = viewdist-3846004;
-		WriteProcessMemory(g_ArmaHANDLE,  (LPVOID*)0x0E25718, &viewdist1, sizeof(viewdist1), NULL);
-		Sleep(150);
+			DWORD viewdist = Read<DWORD>(0x0E25718);
+			long viewdist1 = viewdist-3846004;
+			WriteProcessMemory(g_ArmaHANDLE,  (LPVOID*)0x0E25718, &viewdist1, sizeof(viewdist1), NULL);
+			Sleep(150);
 		}
 		else if (GetAsyncKeyState(VK_LSHIFT) && GetAsyncKeyState(VK_HOME))
 		{
-		DWORD grass = Read<DWORD>(ARMA_CLIENT);
-		int grasspt = grass + 0x14F0;
-		long value = 1112014848;
-		WriteProcessMemory(g_ArmaHANDLE,  (LPVOID*)grasspt, &value, sizeof(value), NULL);
-		Sleep(150);
+			DWORD grass = Read<DWORD>(ARMA_CLIENT);
+			int grasspt = grass + 0x14F0;
+			long value = 1112014848;
+			WriteProcessMemory(g_ArmaHANDLE,  (LPVOID*)grasspt, &value, sizeof(value), NULL);
+			Sleep(150);
 		}
 		else if (GetAsyncKeyState(VK_LSHIFT) && GetAsyncKeyState(VK_END))
 		{
-		nofatigue = !nofatigue;
-		Sleep(150);
+			nofatigue = !nofatigue;
+			Sleep(150);
 		}
-		else if (GetAsyncKeyState(VK_LSHIFT) && GetAsyncKeyState(VK_DIVIDE))
+		else if (GetAsyncKeyState(VK_LSHIFT) && GetAsyncKeyState(VK_SUBTRACT))
 		{
-		infAmmo = true;
-		Sleep(150);
+			infiAmmo = !infiAmmo;
+			Sleep(150);
 		}
-		else if (GetAsyncKeyState(VK_LSHIFT) && GetAsyncKeyState(VK_DECIMAL))
+		else if (GetAsyncKeyState(VK_LSHIFT) && GetAsyncKeyState(VK_INSERT))
 		{
-		infAmmo = false;
-		Sleep(150);
+			fullfuel = !fullfuel;
+			Sleep(150);
+		}
+		else if (GetAsyncKeyState(VK_LSHIFT) && GetAsyncKeyState(VK_DELETE))
+		{
+			repairV = !repairV;
+			Sleep(150);
+		}
+		else if (GetAsyncKeyState(VK_LSHIFT) && GetAsyncKeyState(VK_DELETE))
+		{
+			repairV = !repairV;
+			Sleep(150);
+		}
+		else if (GetAsyncKeyState(VK_LCONTROL) && GetAsyncKeyState(VK_END))
+		{
+			datfire = !datfire;
+			Sleep(150);
 		}
 		// LocalPlayer
 		{
@@ -335,7 +356,6 @@ void RenderGame()
 				DrawTextBorder(10, 22, D3DCOLOR_ARGB(255, 255, 0, 0), "Position: %0.1f/%0.1f", g_LocalPos.x/100, g_LocalPos.z/100);
 			}
 		}
-
 		// Range to Rectile
 		{
 			float fRange = Read<float>(Read<DWORD>(dwObjectTable + 0x8) + 0x30);
@@ -354,7 +374,29 @@ void RenderGame()
 			{
 				DWORD dwObjectPtr = Read<DWORD>(dwObjectTableArray + (i * 0x34));
 				DWORD dwEntity = Read<DWORD>(dwObjectPtr + 0x4);
+				if(dwEntity == dwLocalPlayer && fullfuel)
+				{
+					DWORD fleveladdy = Read<DWORD>(dwEntity + 0x18);
+					int fleveladdy1 = fleveladdy + 0xAC;
+					DWORD fcapaddy = Read<DWORD>(dwEntity + 0x3C);
+					int fcapaddy1 = fcapaddy + 0x600;
 
+					DWORD fuelcap = Read<DWORD>(fcapaddy1);
+					DWORD fuellevel = Read<DWORD>(fleveladdy1);
+					WriteProcessMemory(g_ArmaHANDLE,  (LPVOID*)(fleveladdy1), &fuelcap, sizeof(fuelcap), NULL);
+				}
+				if(dwEntity == dwLocalPlayer && repairV)
+				{
+					DWORD dwPartsAmount = Read<DWORD>(dwEntity + 0xC4);
+					DWORD dwParts = Read<DWORD>(dwEntity + 0xC0);
+
+					for(int i = 0; i < dwPartsAmount; i++)
+					{
+						long value = 0;
+						WriteProcessMemory(g_ArmaHANDLE,  (LPVOID*)(dwParts + i * 0x4), &value, sizeof(value), NULL);
+					}
+					continue;
+				}
 				if(dwEntity == dwLocalPlayer)
 					continue;
 
@@ -457,7 +499,7 @@ void RenderGame()
 							float dz = (g_LocalPos.z - pos.z);
 							float dist = sqrt((dx*dx) + (dy*dy) + (dz*dz));
 							if(dist <= 2000.0f)
-							pos = WorldToScreen(pos);
+								pos = WorldToScreen(pos);
 							if(pos.z > 0.01)
 							{
 								DrawTextBorder(pos.x, pos.y, D3DCOLOR_ARGB(255, 0, 200, 0), "%s[%0.fm]", pavad, dist);
@@ -471,53 +513,51 @@ void RenderGame()
 		//writing functions
 		if (nofatigue)
 		{
-		DWORD one = Read<DWORD>(ARMA_CLIENT);
-		DWORD two = Read<DWORD>(one + 0x13A8);
-		DWORD three = Read<DWORD>(two + 0x4);
-		int fatpt = three + 0xC44;
-		long value = 0;
-		WriteProcessMemory(g_ArmaHANDLE,  (LPVOID*)fatpt, &value, sizeof(fatpt), NULL);
+			DWORD one = Read<DWORD>(ARMA_CLIENT);
+			DWORD two = Read<DWORD>(one + 0x13A8);
+			DWORD three = Read<DWORD>(two + 0x4);
+			int fatpt = three + 0xC44;
+			long value = 0;
+			WriteProcessMemory(g_ArmaHANDLE,  (LPVOID*)fatpt, &value, sizeof(fatpt), NULL);
 		}
-		if (infAmmo)
+		if (infiAmmo)
 		{
-			// pls fix this shet
-		DWORD objTable = Read<DWORD>(ARMA_CLIENT);
-		DWORD objTablePtr = Read<DWORD>(objTable + 0x13A8);
-		DWORD objTablePtr1 = Read<DWORD>(objTablePtr + 0x4);
-                DWORD objTablePtr2;
-		DWORD weaponID = Read<DWORD>(objTablePtr1 + 0x6E0);
-		objTablePtr1 = Read<DWORD>(objTablePtr1 + 0x694);
-		objTablePtr2 = Read<DWORD>(objTablePtr1 + (weaponID * 0x24 + 0x4));
+			DWORD objTable = Read<DWORD>(ARMA_CLIENT);
+			DWORD objTablePtr = Read<DWORD>(objTable + 0x13A8);
+			DWORD objTablePtr1 = Read<DWORD>(objTablePtr + 0x4);
+			DWORD objTablePtr2;
+			DWORD weaponID = Read<DWORD>(objTablePtr1 + 0x6E0);
+			objTablePtr1 = Read<DWORD>(objTablePtr1 + 0x694);
+			objTablePtr2 = Read<DWORD>(objTablePtr1 + (weaponID * 0x24 + 0x4));
 
-		DWORD maxCntPtr = Read<DWORD>(objTablePtr2 + 8);
-		DWORD currentMuzzleVelocity = Read<DWORD>(maxCntPtr + 0x34);
-		DWORD maxCnt = Read<DWORD>(maxCntPtr + 0x2C);
-		int timeOut;
-		if (maxCnt > 2)
-            {
-                timeOut = objTablePtr2 + 0x14;
-				// fastfire, removed -- llte
-                int value = (int)(maxCnt * .75);
-                DWORD ammo1 = objTablePtr2 + 0xc;
-
-                DWORD ammo2 = objTablePtr2 + 0x24;
-                DWORD tempint;
-                int int1 = (DWORD)(value ^ 0xBABAC8B6);
-                tempint = int1;
-                int1 = int1 << 1;
-                DWORD int2 = tempint - (int1);
-				WriteProcessMemory(g_ArmaHANDLE,  (LPVOID*)ammo1, &value, sizeof(int), NULL);
-				WriteProcessMemory(g_ArmaHANDLE,  (LPVOID*)ammo2, &value, sizeof(int), NULL);
-              //  Mem.WriteMem(ammo1, sizeof(int), (int)int1);
-              //  Mem.WriteMem(ammo2, sizeof(int), (int)int2);
-                //Debug.WriteLine(maxCntPtr.ToString("X"));
-                //Debug.WriteLine(ammo2.ToString("X"));
-            }
-		long value = 0;
-		//WriteProcessMemory(g_ArmaHANDLE,  (LPVOID*)fatpt, &value, sizeof(fatpt), NULL);
+			DWORD maxCntPtr = Read<DWORD>(objTablePtr2 + 8) + 0x2C;
+			DWORD currentMuzzleVelocity = Read<DWORD>(maxCntPtr + 0x34);
+			DWORD maxCnt = Read<DWORD>(maxCntPtr);
+			if (maxCnt <= 2)
+			{
+				long newvalue = 2;
+				WriteProcessMemory(g_ArmaHANDLE,  (LPVOID*)maxCntPtr, &newvalue, sizeof(newvalue), NULL);
+			}
+			int timeOut;
+			timeOut = objTablePtr2 + 0x14;
+			if (datfire)
+			{
+				long value = 0;
+				WriteProcessMemory(g_ArmaHANDLE,  (LPVOID*)timeOut, &value, sizeof(value), NULL);
+			
+			}
+			int value = (int)(maxCnt);
+			DWORD ammo1 = objTablePtr2 + 0xc;
+			DWORD ammo2 = objTablePtr2 + 0x24;
+			DWORD tempint;
+			int int1 = (DWORD)(value ^ 0xBABAC8B6);
+			tempint = int1;
+			int1 = int1 << 1;
+			DWORD int2 = tempint - (int1);
+			WriteProcessMemory(g_ArmaHANDLE,  (LPVOID*)ammo1, &int1, sizeof(int1), NULL);
+			WriteProcessMemory(g_ArmaHANDLE,  (LPVOID*)ammo2, &int2, sizeof(int2), NULL);
 		}
-}
-}
+	}
 }
 void InitDirectX()
 {
