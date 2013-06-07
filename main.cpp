@@ -352,12 +352,12 @@ void RenderGame()
 			datfire = !datfire;
 			Sleep(150);
 		}
-		else if (GetAsyncKeyState(VK_LSHIFT) && GetAsyncKeyState(VK_F3))
+		else if (GetAsyncKeyState(VK_LSHIFT) && GetAsyncKeyState(VK_F2))
 		{
 			wepdmg = !wepdmg;
 			Sleep(150);
 		}
-		else if (GetAsyncKeyState(VK_LSHIFT) && GetAsyncKeyState(VK_F2))
+		else if (GetAsyncKeyState(VK_LSHIFT) && GetAsyncKeyState(VK_F3))
 		{
 			wepdmg1 = !wepdmg1;
 			Sleep(150);
@@ -498,7 +498,7 @@ void RenderGame()
 				{
 					DWORD SlaveA = Read<DWORD>(MasterA + slave);
 					DWORD SlaveS = Read<DWORD>(MasterA + slave + 8);
-					for (int i = 0; i < 50; i++)
+					for (int i = 0; i < SlaveS; i++)
 					{
 						DWORD One = Read<DWORD>(SlaveA + (i * 4));
 						DWORD Two = Read<DWORD>(One + 0x3C);
