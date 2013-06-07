@@ -70,6 +70,8 @@ bool infiAmmo = false;
 bool repairV = false;
 bool fullfuel = false;
 bool datfire = false;
+bool wepdmg = false;
+bool wepdmg1 = false;
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -250,6 +252,8 @@ void SideMenu()
 	{DrawTextBorder(10, 100, D3DCOLOR_ARGB(255, 255, 69, 0), "Repair is: %s",(repairV)?"active!":"off"); }
 	{DrawTextBorder(10, 110, D3DCOLOR_ARGB(255, 255, 69, 0), "Refuel is: %s",(fullfuel)?"active!":"off"); }
 	if(datfire){{DrawTextBorder(g_fResolution[0] - 100 , 50, D3DCOLOR_ARGB(255, 255, 0, 0), "Maximum firerate"); }}
+	if(wepdmg){{DrawTextBorder(g_fResolution[0] - 100 , 60, D3DCOLOR_ARGB(255, 255, 0, 0), "high damage"); }}
+	if(wepdmg1){{DrawTextBorder(g_fResolution[0] - 100 , 70, D3DCOLOR_ARGB(255, 255, 0, 0), "VERY HIGH DAMAGE"); }}
 }
 
 
@@ -346,6 +350,16 @@ void RenderGame()
 		else if (GetAsyncKeyState(VK_LCONTROL) && GetAsyncKeyState(VK_END))
 		{
 			datfire = !datfire;
+			Sleep(150);
+		}
+		else if (GetAsyncKeyState(VK_LSHIFT) && GetAsyncKeyState(VK_F3))
+		{
+			wepdmg = !wepdmg;
+			Sleep(150);
+		}
+		else if (GetAsyncKeyState(VK_LSHIFT) && GetAsyncKeyState(VK_F2))
+		{
+			wepdmg1 = !wepdmg1;
 			Sleep(150);
 		}
 		// LocalPlayer
@@ -530,9 +544,23 @@ void RenderGame()
 			objTablePtr1 = Read<DWORD>(objTablePtr1 + 0x694);
 			objTablePtr2 = Read<DWORD>(objTablePtr1 + (weaponID * 0x24 + 0x4));
 
-			DWORD maxCntPtr = Read<DWORD>(objTablePtr2 + 8) + 0x2C;
+			DWORD maxCntPtr = Read<DWORD>(objTablePtr2 + 8);
 			DWORD currentMuzzleVelocity = Read<DWORD>(maxCntPtr + 0x34);
-			DWORD maxCnt = Read<DWORD>(maxCntPtr);
+			DWORD maxCnt = Read<DWORD>(maxCntPtr + 0x2C);
+			if (wepdmg)
+			{
+				DWORD dmgpt = Read<DWORD>(maxCntPtr + 0x200);
+				DWORD dmgptr = dmgpt + 0x140;
+				long newvalue = 1099713344;
+				WriteProcessMemory(g_ArmaHANDLE,  (LPVOID*)dmgptr, &newvalue, sizeof(newvalue), NULL);
+			}
+			else if (wepdmg1)
+			{
+				DWORD dmgpt = Read<DWORD>(maxCntPtr + 0x200);
+				DWORD dmgptr = dmgpt + 0x140;
+				long newvalue = 1199713344;
+				WriteProcessMemory(g_ArmaHANDLE,  (LPVOID*)dmgptr, &newvalue, sizeof(newvalue), NULL);
+			}
 			if (maxCnt <= 2)
 			{
 				long newvalue = 2;
