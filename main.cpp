@@ -72,6 +72,7 @@ bool fullfuel = false;
 bool datfire = false;
 bool wepdmg = false;
 bool wepdmg1 = false;
+bool alwaysday = false;
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -254,8 +255,8 @@ void SideMenu()
 	if(datfire){{DrawTextBorder(g_fResolution[0] - 100 , 50, D3DCOLOR_ARGB(255, 255, 0, 0), "Maximum firerate"); }}
 	if(wepdmg){{DrawTextBorder(g_fResolution[0] - 100 , 60, D3DCOLOR_ARGB(255, 255, 0, 0), "high damage"); }}
 	if(wepdmg1){{DrawTextBorder(g_fResolution[0] - 100 , 70, D3DCOLOR_ARGB(255, 255, 0, 0), "VERY HIGH DAMAGE"); }}
+	if(alwaysday){{DrawTextBorder(g_fResolution[0] - 100 , 70, D3DCOLOR_ARGB(255, 255, 0, 0), "ALways Day - activated"); }}
 }
-
 
 void RenderGame()
 {
@@ -362,7 +363,12 @@ void RenderGame()
 			wepdmg1 = !wepdmg1;
 			Sleep(150);
 		}
+		else if (GetAsyncKeyState(VK_LSHIFT) && GetAsyncKeyState(VK_F9))
 		// LocalPlayer
+		{
+			alwaysday = !alwaysday;
+			SLeep(150);
+		}
 		{
 			if(dwLocalPlayer)
 			{
@@ -534,7 +540,11 @@ void RenderGame()
 			long value = 0;
 			WriteProcessMemory(g_ArmaHANDLE,  (LPVOID*)fatpt, &value, sizeof(fatpt), NULL);
 		}
+		if (alwaysday)
 		if (infiAmmo)
+		{
+			// i dont have the code atm, im at school and i'll push at home
+		}
 		{
 			DWORD objTable = Read<DWORD>(ARMA_CLIENT);
 			DWORD objTablePtr = Read<DWORD>(objTable + 0x13A8);
